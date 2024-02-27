@@ -32,7 +32,7 @@ To use this Swift Package in your Xcode project, follow these steps:
 
 1. Open your project in Xcode.
 2. Go to File > Swift Packages > Add Package Dependency.
-3. Enter the URL of this repository https://github.com/MBFTECH/MBFUniversalSDK_iOS and click Next.
+3. Enter the URL of this repository https://github.com/MBFTECH/mbf-universal-sdk-ios and click Next.
 4. Choose the version rule you want to use (e.g. "Up to Next Major") and click Next.
 5. Select the target you want to add the package to and click Finish.
 6. Import the MBFUniversalSDK module in your Swift files where you want to use the SDK.
@@ -99,11 +99,12 @@ let adView = AdView()
 adView.adSize = .rectangle
 adView.adType = .banner
 adView.unitID = NSNumber(value: <<<Find your inventory ID in container>>>)
-
-// Add AdView to your layout
 adView.translatesAutoresizingMaskIntoConstraints = false
+
+// Add AdView to your view
 self.view.addSubview(adView)
 
+// Set contraint of AddView on application
 NSLayoutConstraint.activate([
     adView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
     adView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
@@ -136,8 +137,14 @@ adView.adSize = .rectangle
 adView.adType = .banner
 adView.unitID = NSNumber(value: <<<Find your inventory ID in container>>>)
 
-// Add AdView to your layout
+// Add AdView to your view
 self.view.addSubview(adView)
+
+// Set constraint of AdView on application
+NSLayoutConstraint.activate([
+    adView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+    adView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
+])
 ```
 
 Set Banner Ad width, SDK will calculate height automatically base on Ad ratio
@@ -145,6 +152,34 @@ In this case, we will make same width with its parent
 
 ```javascript
 adView.adaptiveSize(self.view.frame.width);
+```
+
+Create AdView with type ad being Rerolver, Mobile Spin
+
+```javascript
+var constraintView: NSLayoutConstraint!
+
+let adView = AdView()
+adView.adSize = .rectangle
+adView.adType = .banner
+adView.unitID = NSNumber(value: <<<Find your inventory ID in container>>>)
+
+// Add AdView to your view
+self.view.addSubview(adView)
+
+// Set constraintView
+self.constraintView = self.adView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor)
+self.constraintView.isActive = true
+            
+// Set constraint of ad View
+self.adView.constraintView  = self.constraintView
+
+// Set constraint of AdView on application
+NSLayoutConstraint.activate([
+    self.adView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+    self.adView.leftAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leftAnchor),
+    self.adView.rightAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.rightAnchor),
+])
 ```
 
 Perform loadAd with a request
@@ -292,6 +327,68 @@ if let contentView = templateMedium.contentView {
 
 ```
 
+#### Interstitial Ad
+To display a interstitial ad, you need to use the InterstitialAd function to get the ad from Aiactiv platform and then presenting ad .
+
+```javascript
+var interstitialAd: InterstitialAd?
+
+InterstitialAd.loadAd(adUnitID: <<<Find your inventory ID in container>>>) { ad, err in
+    if let err = err {
+        print("Interstitial ad failed to load with error: \(err.localizedDescription)")
+        return
+    }
+           
+    self.interstitialAd = ad
+    self.interstitialAd.delegate = self
+}
+```
+
+Presenting interstitial ad on app 
+
+```javascript
+if let ad = interstitialAd {
+    ad.present(rootController: <<<ViewController>>>)
+}
+```
+
+#### Mobile First View Ad
+To display a mobile first view ad, you need to use the MobileFirstViewAd function to get the ad from Aiactiv platform and then presenting ad .
+
+```javascript
+var mobileFirstViewAd: MobileFirstViewAd?
+
+MobileFirstViewAd.loadAd(adUnitID: <<<Find your inventory ID in container>>>) { ad, err in
+    if let err = err {
+        print("Mobile first view ad failed to load with error: \(err.localizedDescription)")
+        return
+    }
+           
+    self.mobileFirstViewAd = ad
+    self.mobileFirstViewAd.delegate = self
+}
+
+```
+
+Loading mobile first view ad into root view controller (Apllication can present it in AppDelegate)
+
+```javascript
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    // Override point for customization after application launch.
+
+    let mainStoryBoard = UIStoryboard(name: "Main", bundle: nil)
+    let navigationController = mainStoryBoard.instantiateViewController(
+         withIdentifier: "NavigationController")
+    let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow })
+    keyWindow?.rootViewController = navigationController
+
+    if let mbvAd = mobileFirstViewAd {
+        mobileFirstViewAd?.present(rootController: <<<Root ViewController>>>)
+    }
+
+}
+```
+
 #### Using AdRequest
 
 ```javascript
@@ -351,6 +448,36 @@ extension ShowAdViewController: NativeAdViewDelegate {
     func onNativeAdViewEvent(_ view: NativeAdView, adEvent event: NativeAdView.NativeAdEvent) {
         print("Event: \(event.data.name)")
     }
+}
+```
+
+##### For Interstitial Ad - InterstitialAdDelegate
+
+```javascript
+extension ShowAdViewController: InterstitialAdDelegate {
+    func interstitialAd(_ad: MBFUniversalSDK.InterstitialAd, didFailToPresentContentWithError error: String) {
+       
+    }
+    
+    func adDidDismissScreentContent(_ad: MBFUniversalSDK.InterstitialAd) {
+       
+    }
+}
+```
+
+##### For Mobile First View Ad - MobileFirstViewAdDelegate
+
+```javascript
+extension SflashViewController: MobileFirstViewAdDelegate {
+    func mobilefirstviewAd(_ad: MBFUniversalSDK.MobileFirstViewAd, didFailToPresentContentWithError error: String) {
+        
+    }
+    
+    func adDidDismissScreentContent(_ad: MBFUniversalSDK.MobileFirstViewAd) {
+        // show main view
+        print("App open ad was dismissed.")
+    }
+    
 }
 ```
 
