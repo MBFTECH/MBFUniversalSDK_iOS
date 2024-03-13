@@ -18,6 +18,6 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "MBFUniversalSDK",
-            path: "./0.1.18/MBFUniversalSDK.xcframework.zip")
+            path: "./0.1.19/MBFUniversalSDK.xcframework.zip")
     ]
 )
